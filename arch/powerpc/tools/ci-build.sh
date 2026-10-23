@@ -36,6 +36,10 @@ if [[ -n "$MERGE_CONFIG" ]]; then
     cmd+="-e MERGE_CONFIG=$MERGE_CONFIG "
 fi
 
+if [[ -n "$RUST" ]]; then
+    cmd+="-e RUST=$RUST "
+fi
+
 if [[ "$SUBARCH" == "ppc64le" ]]; then
     cross="powerpc64le-linux-gnu-"
 else

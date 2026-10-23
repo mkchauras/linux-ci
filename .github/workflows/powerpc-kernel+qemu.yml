@@ -36,6 +36,13 @@ jobs:
             defconfig: ppc64le_guest_defconfig
             image: korg-8.1.0
 
+          # ppc64le_guest_defconfig with Rust for Linux enabled
+          - subarch: ppc64le
+            defconfig: ppc64le_guest_defconfig
+            merge_config: /linux/arch/powerpc/configs/rust-ci.config
+            rust: 1
+            image: ubuntu-24.04
+
           # ppc44x
           - defconfig: ppc44x_defconfig
             merge_config: /linux/arch/powerpc/configs/ppc44x-qemu.config
@@ -74,6 +81,7 @@ jobs:
       TARGET: kernel
       CCACHE: 1
       SUBARCH: ${{ matrix.subarch }}
+      RUST: ${{ matrix.rust }}
       IMAGE: ${{ matrix.image }}
       DEFCONFIG: ${{ matrix.defconfig }}
       MERGE_CONFIG: ${{ matrix.merge_config }}
@@ -98,6 +106,20 @@ jobs:
         registry: ghcr.io
         username: ${{ github.actor }}
         password: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Create Rust config fragment
+      if: matrix.rust != ''
+      run: |
+        # Rust is incompatible with MODVERSIONS unless GENDWARFKSYMS is used,
+        # so turn it off. Build the minimal Rust sample in to exercise Rust
+        # code at boot.
+        cat > arch/powerpc/configs/rust-ci.config <<EOF
+        # CONFIG_MODVERSIONS is not set
+        CONFIG_RUST=y
+        CONFIG_SAMPLES=y
+        CONFIG_SAMPLES_RUST=y
+        CONFIG_SAMPLE_RUST_MINIMAL=y
+        EOF
 
     - name: Build
       run: |
@@ -139,6 +161,21 @@ jobs:
             rootfs: ppc64le-rootfs.cpio.gz
             old-image: korg-8.1.0
             new-image: fedora-42
+
+          # Rust for Linux
+          - defconfig: ppc64le_guest_defconfig
+            machine: pseries+p8+tcg
+            machine_2: pseries+p9+tcg
+            packages: qemu-system-ppc64
+            rootfs: ppc64le-rootfs.cpio.gz
+            new-image: ubuntu-24.04
+
+          - defconfig: ppc64le_guest_defconfig
+            machine: powernv+p8+tcg
+            machine_2: powernv+p9+tcg
+            packages: qemu-system-ppc64
+            rootfs: ppc64le-rootfs.cpio.gz
+            new-image: ubuntu-24.04
 
           - defconfig: ppc44x_defconfig
             machine: 44x
