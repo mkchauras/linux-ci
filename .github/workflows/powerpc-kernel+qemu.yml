@@ -43,6 +43,12 @@ jobs:
             rust: 1
             image: ubuntu-24.04
 
+          # wii with Rust for Linux enabled (build only, qemu has no wii machine)
+          - defconfig: wii_defconfig
+            merge_config: /linux/arch/powerpc/configs/rust-ci.config
+            rust: 1
+            image: ubuntu-24.04
+
           # ppc44x
           - defconfig: ppc44x_defconfig
             merge_config: /linux/arch/powerpc/configs/ppc44x-qemu.config
